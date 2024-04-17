@@ -1,5 +1,5 @@
 ---
-name: "Setup Python"
+name: "Setup Python with S3 Caching"
 description: "Set up a specific version of Python and add the command-line tools to the PATH."
 author: "GitHub"
 inputs:

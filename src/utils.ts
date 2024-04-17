@@ -1,5 +1,5 @@
 /* eslint no-unsafe-finally: "off" */
-import * as cache from '@actions/cache';
+import * as cache from '@ambi-robotics/cache';
 import * as core from '@actions/core';
 import fs from 'fs';
 import * as path from 'path';

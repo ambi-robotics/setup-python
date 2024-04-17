@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import * as cache from '@actions/cache';
+import * as cache from '@ambi-robotics/cache';
 
 import fs from 'fs';
 import {State} from './cache-distributions/cache-distributor';
