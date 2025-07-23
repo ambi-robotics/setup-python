@@ -22,19 +22,20 @@
     - [macOS](advanced-usage.md#macos)
 - [Using `setup-python` on GHES](advanced-usage.md#using-setup-python-on-ghes)
 - [Allow pre-releases](advanced-usage.md#allow-pre-releases)
+- [Using the pip-version input](advanced-usage.md#using-the-pip-version-input)
 
 ## Using the `python-version` input
 
 ### Specifying a Python version
 
-If there is a specific version of Python that you need and you don't want to worry about any potential breaking changes due to patch updates (going from `3.7.5` to `3.7.6` for example), you should specify the **exact major, minor, and patch version** (such as `3.7.5`):
+If there is a specific version of Python that you need and you don't want to worry about any potential breaking changes due to patch updates (going from `3.12.6` to `3.12.7` for example), you should specify the **exact major, minor, and patch version** (such as `3.12.6`):
 
 ```yaml
 steps:
 - uses: actions/checkout@v4
 - uses: actions/setup-python@v5
   with:
-    python-version: '3.7.5' 
+    python-version: '3.12.6' 
 - run: python my_script.py
 ```
 
@@ -48,7 +49,7 @@ steps:
 - uses: actions/checkout@v4
 - uses: actions/setup-python@v5
   with:
-    python-version: '3.7' 
+    python-version: '3.13' 
 - run: python my_script.py
 ```
 - There will be a single patch version already installed on each runner for every minor version of Python that is supported.
@@ -62,7 +63,7 @@ steps:
 - uses: actions/checkout@v4
 - uses: actions/setup-python@v5
   with:
-    python-version: '3.12.0-alpha.1'
+    python-version: '3.14.0-alpha.1'
 - run: python my_script.py
 ```
 
@@ -73,7 +74,32 @@ steps:
 - uses: actions/checkout@v4
 - uses: actions/setup-python@v5
   with:
-    python-version: '3.12-dev'
+    python-version: '3.14-dev'
+- run: python my_script.py
+```
+
+You can specify the [free threading](https://docs.python.org/3/howto/free-threading-python.html) version of Python by setting the `freethreaded` input to `true` or by using the special **t** suffix in some cases.
+You can use the **t** suffix when specifying the major and minor version (e.g., `3.13t`), with a patch version (e.g., `3.13.1t`), or with the **x.y-dev syntax** (e.g., `3.14t-dev`).
+Free threaded Python is only available starting with the 3.13 release.
+
+```yaml
+steps:
+- uses: actions/checkout@v4
+- uses: actions/setup-python@v5
+  with:
+    python-version: '3.13t'
+- run: python my_script.py
+```
+
+Note that the **t** suffix is not `semver` syntax. If you wish to specify a range, you must use the `freethreaded` input instead of the `t` suffix.
+
+```yaml
+steps:
+- uses: actions/checkout@v4
+- uses: actions/setup-python@v5
+  with:
+    python-version: '>=3.13'
+    freethreaded: true
 - run: python my_script.py
 ```
 
@@ -86,7 +112,7 @@ steps:
 - uses: actions/checkout@v4
 - uses: actions/setup-python@v5
   with:
-    python-version: '>=3.9 <3.10'
+    python-version: '>=3.9 <3.14'
 - run: python my_script.py
 ```
 
@@ -97,11 +123,11 @@ steps:
 - uses: actions/checkout@v4
 - uses: actions/setup-python@v5
   with:
-    python-version: '3.12.0-alpha - 3.12.0'
+    python-version: '3.13.0-alpha - 3.13.0'
 - run: python my_script.py
 ```
 
-- **[x-ranges](https://github.com/npm/node-semver#x-ranges-12x-1x-12-)** to specify the latest stable version of Python (for specified major version):
+- **[x-ranges](https://github.com/npm/node-semver#x-ranges-12x-1x-12-)** to specify the latest stable version of Python (for the specified major version):
 
 ```yaml
 steps:
@@ -118,8 +144,8 @@ The version of PyPy should be specified in the format `pypy<python_version>[-v<p
 The `-v<pypy_version>` parameter is optional and can be skipped. The latest PyPy version will be used in this case.
 
 ```
+pypy3.10 or pypy-3.10 # the latest available version of PyPy that supports Python 3.10
 pypy3.9 or pypy-3.9 # the latest available version of PyPy that supports Python 3.9
-pypy2.7 or pypy-2.7 # the latest available version of PyPy that supports Python 2.7
 pypy3.7-v7.3.3 or pypy-3.7-v7.3.3 # Python 3.7 and PyPy 7.3.3
 pypy3.7-v7.x or pypy-3.7-v7.x # Python 3.7 and the latest available PyPy 7.x
 pypy3.7-v7.3.3rc1 or pypy-3.7-v7.3.3rc1 # Python 3.7 and preview version of PyPy
@@ -135,8 +161,8 @@ jobs:
     strategy:
       matrix:
         python-version:
-        - 'pypy3.7' # the latest available version of PyPy that supports Python 3.7
-        - 'pypy3.7-v7.3.3' # Python 3.7 and PyPy 7.3.3
+        - 'pypy3.10' # the latest available version of PyPy that supports Python 3.10
+        - 'pypy3.10-v7.3.17' # Python 3.10 and PyPy 7.3.17
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
@@ -144,7 +170,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - run: python my_script.py
 ```
-More details on PyPy syntax can be found in the [Available versions of PyPy](#pypy) section.
+More details on the syntax for PyPy can be found in the [Available versions of PyPy](#pypy) section.
 
 ### Specifying multiple Python/PyPy versions
 The python-version input can get multiple python/pypy versions. The last specified version will be used as a default one. 
@@ -160,9 +186,9 @@ jobs:
     - uses: actions/setup-python@v5
       with:
         python-version: |
-            3.8
-            3.9
-            3.10
+            3.11
+            3.12
+            3.13
     - run: python my_script.py
 ```
 
@@ -177,9 +203,9 @@ jobs:
     - uses: actions/setup-python@v5
       with:
         python-version: |
-            pypy-3.7-v7.3.x
-            pypy3.9-nightly
-            pypy3.8
+            pypy-3.10-v7.3.x
+            pypy3.10-nightly
+            pypy3.9
     - run: python my_script.py
 ```
 
@@ -194,17 +220,17 @@ jobs:
     - uses: actions/setup-python@v5
       with:
         python-version: |
-            3.8
-            3.9
-            pypy3.9-nightly
-            pypy3.8
-            3.10
+            3.11
+            3.12
+            pypy3.10-nightly
+            pypy3.10
+            3.13
     - run: python my_script.py
 ```
 
 ### Matrix Testing
 
-Using `setup-python` it's possible to use [matrix syntax](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix) to install several versions of Python or PyPy:
+Using `setup-python` it's possible to use the [matrix syntax](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix) to install several versions of Python or PyPy:
 
 ```yaml
 jobs:
@@ -212,7 +238,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '2.x', '3.x', 'pypy2.7', 'pypy3.8', 'pypy3.9' ]
+        python-version: ['3.x', 'pypy3.8', 'pypy3.9' ]
     name: Python ${{ matrix.python-version }} sample
     steps:
       - uses: actions/checkout@v4
@@ -231,14 +257,15 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['2.7', '3.7', '3.8', '3.9', '3.10', 'pypy2.7', 'pypy3.9']
+        python-version: ['3.9', '3.10', '3.11', 'pypy3.9']
         exclude:
           - os: macos-latest
-            python-version: '3.8'
+            python-version: '3.9'
           - os: windows-latest
-            python-version: '3.6'
+            python-version: '3.9'
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -246,6 +273,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Display Python version
+        if: ${{ matrix.python-version != 'pypy3.9' }}  # Use single quotes in expressions for input `python-version`
         run: python --version
 ```
 
@@ -253,7 +281,7 @@ jobs:
 
 `setup-python` action can read Python or PyPy version from a version file. `python-version-file` input is used for specifying the path to the version file. If the file that was supplied to `python-version-file` input doesn't exist, the action will fail with error.
 
->In case both `python-version` and `python-version-file` inputs are supplied, the `python-version-file` input will be ignored due to its lower priority.
+>In case both `python-version` and `python-version-file` inputs are supplied, the `python-version-file` input will be ignored due to its lower priority. The .tool-versions file supports version specifications in accordance with asdf standards, adhering to Semantic Versioning ([semver](https://semver.org)).
 
 ```yaml
 steps:
@@ -273,6 +301,15 @@ steps:
 - run: python my_script.py
 ```
 
+```yaml
+steps:
+- uses: actions/checkout@v4
+- uses: actions/setup-python@v5
+  with:
+    python-version-file: '.tool-versions' # Read python version from a file .tool-versions
+- run: python my_script.py
+```
+
 ## Check latest version
 
 The `check-latest` flag defaults to `false`. Use the default or set `check-latest` to `false` if you prefer stability and if you want to ensure a specific `Python or PyPy` version is always used.
@@ -284,11 +321,11 @@ steps:
   - uses: actions/checkout@v4
   - uses: actions/setup-python@v5
     with:
-      python-version: '3.7'
+      python-version: '3.13'
       check-latest: true
   - run: python my_script.py
 ```
-> Setting `check-latest` to `true` has performance implications as downloading `Python or PyPy` versions is slower than using cached versions.
+> Setting `check-latest` to `true` impacts performance as downloading `Python or PyPy` versions is slower than using cached versions.
 
 
 ## Caching packages
@@ -299,7 +336,7 @@ steps:
 - uses: actions/checkout@v4
 - uses: actions/setup-python@v5
   with:
-    python-version: '3.9'
+    python-version: '3.13'
     cache: 'pipenv'
 - name: Install pipenv
   run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
@@ -314,11 +351,12 @@ steps:
   run: pipx install poetry
 - uses: actions/setup-python@v5
   with:
-    python-version: '3.9'
+    python-version: '3.13'
     cache: 'poetry'
 - run: poetry install
 - run: poetry run pytest
 ```
+>**Note:** If the `setup-python` version does not match the version specified in `pyproject.toml` and the python version in `pyproject.toml` is less than the runner's python version, `poetry install` will default to using the runner's Python version.
 
 **Using a list of file paths to cache dependencies**
 ```yaml
@@ -326,7 +364,7 @@ steps:
 - uses: actions/checkout@v4
 - uses: actions/setup-python@v5
   with:
-    python-version: '3.9'
+    python-version: '3.13'
     cache: 'pipenv'
     cache-dependency-path: |
       server/app/Pipfile.lock
@@ -341,7 +379,7 @@ steps:
 - uses: actions/checkout@v4
 - uses: actions/setup-python@v5
   with:
-    python-version: '3.9'
+    python-version: '3.13'
     cache: 'pip'
     cache-dependency-path: '**/requirements-dev.txt'
 - run: pip install -r subdirectory/requirements-dev.txt
@@ -353,7 +391,7 @@ steps:
 - uses: actions/checkout@v4
 - uses: actions/setup-python@v5
   with:
-    python-version: '3.10'
+    python-version: '3.13'
     cache: 'pip'
     cache-dependency-path: |
       **/setup.cfg
@@ -368,20 +406,20 @@ steps:
 - uses: actions/checkout@v4
 - uses: actions/setup-python@v5
   with:
-    python-version: '3.11'
+    python-version: '3.13'
     cache: 'pip'
     cache-dependency-path: setup.py
 - run: pip install -e .
   # Or pip install -e '.[test]' to install test dependencies
 ```
-
+Note: cache-dependency-path supports files located outside the workspace root by copying them into the workspace to enable proper caching.
 # Outputs and environment variables
 
 ## Outputs
 
 ### `python-version`
 
-Using **python-version** output it's possible to get the installed by action Python or PyPy version. This output is useful when the input `python-version` is given as a range (e.g. 3.8.0 - 3.10.0 ), but down in a workflow you need to operate with the exact installed version (e.g. 3.10.1). 
+Using **python-version** output, it's possible to get the precise Python or PyPy version installed by the action. This output is useful when the input `python-version` is given as a range (e.g. 3.9.0 - 3.12.0, 3.x ), but down the line you need to operate (such as in an `if:` statement) with the exact installed version (e.g. 3.12.0). 
 
 ```yaml
 jobs:
@@ -390,15 +428,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
-      id: cp310
+      id: cp312
       with:
-        python-version: "3.8.0 - 3.10.0"
-    - run: echo '${{ steps.cp310.outputs.python-version }}'
+        python-version: "3.9.0 - 3.12.0"
+    - run: echo '${{ steps.cp312.outputs.python-version }}'
 ```
 
 ### `python-path`
 
-**python-path** output is available with the absolute path of the Python or PyPy interpreter executable if you need it:
+**python-path** output is available to get the absolute path of the Python or PyPy interpreter executable:
 
 ```yaml
 jobs:
@@ -407,10 +445,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
-      id: cp310
+      id: cp313
       with:
-        python-version: "3.10"
-    - run: pipx run --python '${{ steps.cp310.outputs.python-path }}' nox --version
+        python-version: "3.13"
+    - run: pipx run --python '${{ steps.cp313.outputs.python-path }}' nox --version
 ```
 ### `cache-hit`
 
@@ -423,11 +461,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
-      id: cp310
+      id: cp313
       with:
-        python-version: "3.8.0"
+        python-version: "3.13.0"
         cache: "poetry"
-    - run: echo '${{ steps.cp310.outputs.cache-hit }}' # true if cache-hit occurred on the primary key
+    - run: echo '${{ steps.cp313.outputs.cache-hit }}' # true if cache-hit occurred on the primary key
 ```
 
 ## Environment variables
@@ -447,18 +485,18 @@ The `update-environment` flag defaults to `true`.
 With this setting, the action will add/update environment variables (e.g. `PATH`, `PKG_CONFIG_PATH`, `pythonLocation`) for Python or PyPy to just work out of the box.
 
 If `update-environment` is set to `false`, the action will not add/update environment variables.
-This can prove useful if you want the only side-effect to be to ensure Python or PyPy is installed and rely on the `python-path` output to run executable.
+This can prove useful if you only want the side-effect to ensure that Python or PyPy is installed and rely on the `python-path` output to run the executable.
 Such a requirement on side-effect could be because you don't want your composite action messing with your user's workflows.
 
 ```yaml
  steps:
    - uses: actions/checkout@v4
    - uses: actions/setup-python@v5
-     id: cp310
+     id: cp313
      with:
-       python-version: '3.10'
+       python-version: '3.13'
        update-environment: false
-   - run: ${{ steps.cp310.outputs.python-path }} my_script.py
+   - run: ${{ steps.cp313.outputs.python-path }} my_script.py
 ```
 ## Available versions of Python, PyPy and GraalPy
 ### Python
@@ -467,10 +505,10 @@ Such a requirement on side-effect could be because you don't want your composite
 
 - Preinstalled versions of Python in the tool cache on GitHub-hosted runners.
     - For detailed information regarding the available versions of Python that are installed, see [Supported software](https://docs.github.com/en/actions/reference/specifications-for-github-hosted-runners#supported-software).
-    - For every minor version of Python, expect only the latest patch to be preinstalled.
-    - If `3.8.1` is installed for example, and `3.8.2` is released, expect `3.8.1` to be removed and replaced by `3.8.2` in the tool cache.
-    - If the exact patch version doesn't matter to you, specifying just the major and minor versions will get you the latest preinstalled patch version. In the previous example, the version spec `3.8` will use the `3.8.2` Python version found in the cache.
-    - Use `-dev` instead of a patch number (e.g., `3.12-dev`) to install the latest patch version release for a given minor version, *alpha and beta releases included*.
+    - For every minor versions of Python, expect only the latest patch to be preinstalled.
+    - If `3.12.1` is installed for example, and `3.12.2` is released, expect `3.12.1` to be removed and replaced by `3.12.2` in the tool cache.
+    - If the exact patch version doesn't matter to you, specifying just the major and minor versions will get you the latest preinstalled patch version. In the previous example, the version spec `3.12` will use the `3.12.2` Python version found in the cache.
+    - Use `-dev` instead of a patch number (e.g., `3.14-dev`) to install the latest patch version release for a given minor version, *alpha and beta releases included*.
 - Downloadable Python versions from GitHub Releases ([actions/python-versions](https://github.com/actions/python-versions/releases)).
     - All available versions are listed in the [version-manifest.json](https://github.com/actions/python-versions/blob/main/versions-manifest.json) file.
     - If there is a specific version of Python that is not available, you can open an issue here
@@ -484,7 +522,7 @@ Such a requirement on side-effect could be because you don't want your composite
 - Preinstalled versions of PyPy in the tool cache on GitHub-hosted runners
   - For detailed information regarding the available versions of PyPy that are installed, see [Supported software](https://docs.github.com/en/actions/reference/specifications-for-github-hosted-runners#supported-software).
   - For the latest PyPy release, all versions of Python are cached.
-  - Cache is updated with a 1-2 week delay. If you specify the PyPy version as `pypy3.7` or `pypy-3.7`, the cached version will be used although a newer version is available. If you need to start using the recently released version right after release, you should specify the exact PyPy version using `pypy3.7-v7.3.3` or `pypy-3.7-v7.3.3`.
+  - Cache is updated with a 1-2 week delay. If you specify the PyPy version as `pypy3.10` or `pypy-3.10`, the cached version will be used although a newer version is available. If you need to start using the recently released version right after release, you should specify the exact PyPy version using `pypy3.10-v7.3.17` or `pypy-3.10-v7.3.17`.
 
 - Downloadable PyPy versions from the [official PyPy site](https://downloads.python.org/pypy/).
   - All available versions that we can download are listed in [versions.json](https://downloads.python.org/pypy/versions.json) file.
@@ -532,11 +570,11 @@ If you have a supported self-hosted runner and you would like to use `setup-pyth
 
 ### Linux
 
-By default runner downloads and installs tools into the folder set up by `RUNNER_TOOL_CACHE` environment variable. The environment variable called `AGENT_TOOLSDIRECTORY` can be set to change this location for Linux self-hosted runners:
+By default, the runner downloads and installs tools into the folder set up by `RUNNER_TOOL_CACHE` environment variable. The environment variable called `AGENT_TOOLSDIRECTORY` can be set to change this location for Linux self-hosted runners:
 - In the same shell that your runner is using, type `export AGENT_TOOLSDIRECTORY=/path/to/folder`.
 - More permanent way of setting the environment variable is to create an `.env` file in the same directory as your runner and to add `AGENT_TOOLSDIRECTORY=/path/to/folder`. This ensures the variable is always set if your runner is configured as a service.
 
-If you're using a non-default tool cache directory be sure that the user starting the runner has write permission to the new tool cache directory. To check the current user and group that the runner belongs type `ls -l` inside the runner's root directory.
+If you're using a non-default tool cache directory be sure that the user starting the runner has write permission to the new tool cache directory. To check the current user and group that the runner belongs, type `ls -l` inside the runner's root directory.
 
 The runner can be granted write access to any directory using a few techniques:
 - The user starting the runner is the owner, and the owner has write permission.
@@ -595,7 +633,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [Ubuntu, Windows, macOS]
-        python_version: ["3.11", "3.12"]
+        python_version: ["3.11", "3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
@@ -606,3 +644,22 @@ jobs:
       - run: pipx run nox --error-on-missing-interpreters -s tests-${{ matrix.python_version }}
 ```
 
+## Using the pip-version input
+
+The `pip-version` input allows you to specify the desired version of **Pip** to use with the standard Python version.
+The version of Pip should be specified in the format `major`, `major.minor`, or `major.minor.patch` (for example: 25, 25.1, or 25.0.1).
+
+```yaml
+      steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          pip-version: '25.0.1'
+      - name: Display Pip version
+        run: pip --version
+```
+> The `pip-version` input is supported only with standard Python versions. It is not available when using PyPy or GraalPy.
+
+> Using a specific or outdated version of pip may result in compatibility or security issues and can cause job failures. For best practices and guidance, refer to the official [pip documentation](https://pip.pypa.io/en/stable/).
